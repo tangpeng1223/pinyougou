@@ -1,5 +1,5 @@
-app.service("loginService", function ($http) {
-    this.getUsername = function () {
-        return $http.get("../login/getUsername.do");
-    };
+app.service("loginService",function ($http) {
+     this.getUsername=function () {
+         return $http.get("../login/getUsername.do");
+     }
 });

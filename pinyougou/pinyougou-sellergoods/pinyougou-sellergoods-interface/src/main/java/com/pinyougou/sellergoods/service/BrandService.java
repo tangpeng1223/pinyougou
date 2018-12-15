@@ -5,6 +5,7 @@ import com.pinyougou.service.BaseService;
 import com.pinyougou.vo.PageResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Date:2018/12/10
@@ -27,4 +28,10 @@ public interface BrandService extends BaseService<TbBrand> {
      * @return
      */
     PageResult search(TbBrand tbBrand, Integer page, Integer rows);
+
+    /**
+     * 查询品牌 格式为：
+     * [{"id":1,"text":"联想"}{"id":11,"text":"诺基亚"}],
+     **/
+    List<Map<String, Object>> selectOptionList();
 }

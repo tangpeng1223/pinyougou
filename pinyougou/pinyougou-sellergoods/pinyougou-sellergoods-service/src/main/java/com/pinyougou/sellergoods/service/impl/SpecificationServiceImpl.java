@@ -18,6 +18,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service(interfaceClass = SpecificationService.class)
 public class SpecificationServiceImpl extends BaseServiceImpl<TbSpecification> implements SpecificationService {
@@ -125,5 +126,15 @@ public class SpecificationServiceImpl extends BaseServiceImpl<TbSpecification> i
         Example.Criteria criteria = example.createCriteria();
         criteria.andIn("specId", Arrays.asList(ids));
         specificationOptionMapper.deleteByExample(example);
+    }
+
+
+    /**
+     * 查询所有的规格 格式为：[{"text":"内存大小"},{"text":"颜色"}]
+     * @return List<Map < String   , O bject>>
+     */
+    @Override
+    public List<Map<String, Object>> selectOptionList() {
+        return specificationMapper.selectOptionList();
     }
 }

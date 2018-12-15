@@ -17,6 +17,7 @@ import tk.mybatis.mapper.entity.Example;
 
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Date:2018/12/10
@@ -62,5 +63,14 @@ public class BrandServiceImpl extends BaseServiceImpl<TbBrand> implements BrandS
         List<TbBrand> tbBrands = brandMapper.selectByExample(example);
         PageInfo<TbBrand> pageInfo = new PageInfo<>(tbBrands);
         return new PageResult(pageInfo.getTotal(),pageInfo.getList());
+    }
+
+    /**
+     * 查询品牌 格式为：
+     * [{"id":1,"text":"联想"}{"id":11,"text":"诺基亚"}],
+     **/
+    @Override
+    public List<Map<String, Object>> selectOptionList() {
+        return brandMapper.selectOptionList();
     }
 }
