@@ -9,6 +9,7 @@ import com.pinyougou.vo.Result;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Security;
 import java.util.List;
 
 @RequestMapping("/goods")
@@ -35,6 +36,8 @@ public class GoodsController {
             //给商品添加商家名
             String sellerName= SecurityContextHolder.getContext().getAuthentication().getName();
             goods.getGoods().setSellerId(sellerName);
+            //设置是否删除 默认为0
+            goods.getGoods().setIsDelete("0");
             //设置商品是未审核的
             goods.getGoods().setAuditStatus("0");
             goodsService.add(goods);
@@ -45,20 +48,14 @@ public class GoodsController {
         return Result.fail("增加失败");
     }
 
+    /**
+     * 回显商品数据 通过商品id
+     * @param id 商品id
+     * @return  Goods（TbGoods GoodsDesc item）
+     */
     @GetMapping("/findOne")
-    public TbGoods findOne(Long id) {
-        return goodsService.findOne(id);
-    }
-
-    @PostMapping("/update")
-    public Result update(@RequestBody TbGoods goods) {
-        try {
-            goodsService.update(goods);
-            return Result.Success("修改成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Result.fail("修改失败");
+    public Goods findOne(Long id) {
+        return goodsService.findGoodsById(id);
     }
 
     @GetMapping("/delete")
@@ -82,7 +79,48 @@ public class GoodsController {
     @PostMapping("/search")
     public PageResult search(@RequestBody  TbGoods goods, @RequestParam(value = "page", defaultValue = "1")Integer page,
                                @RequestParam(value = "rows", defaultValue = "10")Integer rows) {
+
+        //获取用户登录名
+        String sellerId = SecurityContextHolder.getContext().getAuthentication().getName();
+        goods.setSellerId(sellerId);
         return goodsService.search(page, rows, goods);
     }
 
+    /**
+     * 保存更新的商品数据
+     * @param goods 封装的商品数据
+     */
+    @PostMapping("/update")
+    public Result updateGoods(@RequestBody Goods goods){
+        try {
+            TbGoods oldGoods = goodsService.findOne(goods.getGoods().getId());
+            String sellerId = SecurityContextHolder.getContext().getAuthentication().getName();
+            //判断是否是同一商家
+            if(!sellerId.equals(oldGoods.getSellerId())&& sellerId.equals(goods.getGoods().getSellerId())){
+                   return Result.fail("操作非法");
+            }
+            //保存更新的数据
+            goodsService.updateGoods(goods);
+            return  Result.Success("修改成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Result.fail("修改失败");
+    }
+
+    /**
+     * @param ids 提交审核商品的id
+     * @param status 修改状态
+     * @return Result 返回结果
+     */
+    @GetMapping("/updateStatus")
+    public Result updateStatus(Long ids[],String status){
+        try {
+            goodsService.updateStatus(ids,status);
+            return  Result.Success("提交审核成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return  Result.fail("提交审核失败");
+    }
 }

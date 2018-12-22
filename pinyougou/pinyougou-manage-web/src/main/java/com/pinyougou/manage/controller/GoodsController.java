@@ -3,6 +3,7 @@ package com.pinyougou.manage.controller;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.pinyougou.pojo.TbGoods;
 import com.pinyougou.sellergoods.service.GoodsService;
+import com.pinyougou.vo.Goods;
 import com.pinyougou.vo.PageResult;
 import com.pinyougou.vo.Result;
 import org.springframework.web.bind.annotation.*;
@@ -39,8 +40,8 @@ public class GoodsController {
     }
 
     @GetMapping("/findOne")
-    public TbGoods findOne(Long id) {
-        return goodsService.findOne(id);
+    public Goods findOne(Long id) {
+        return goodsService.findGoodsById(id);
     }
 
     @PostMapping("/update")
@@ -54,10 +55,15 @@ public class GoodsController {
         return Result.fail("修改失败");
     }
 
+    /**
+     * 删除商品
+     * @param ids 要删除的商品的id数组
+     * @return Result 处理结果
+     */
     @GetMapping("/delete")
     public Result delete(Long[] ids) {
         try {
-            goodsService.deleteByIds(ids);
+            goodsService.deleteGoodsByIds(ids);
             return Result.Success("删除成功");
         } catch (Exception e) {
             e.printStackTrace();
@@ -78,4 +84,14 @@ public class GoodsController {
         return goodsService.search(page, rows, goods);
     }
 
+    @GetMapping("/updateStatus")
+    public Result updateStatus(Long ids[],String status){
+        try {
+            goodsService.updateStatus(ids,status);
+            return  Result.Success("审核成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Result.fail("审核失败");
+    }
 }
