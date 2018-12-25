@@ -16,6 +16,10 @@
         <module>pinyougou-sellergoods</module>
         <module>pinyougou-shop-web</module>
         <module>pinyougou-content</module>
+        <module>pinyougou-portal-web</module>
+        <module>pinyougou-solr-import</module>
+        <module>pinyougou-search</module>
+        <module>pinyougou-search-web</module>
     </modules>
 
 
