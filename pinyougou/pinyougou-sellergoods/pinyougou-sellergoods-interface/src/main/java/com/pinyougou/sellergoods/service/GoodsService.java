@@ -1,9 +1,12 @@
 package com.pinyougou.sellergoods.service;
 
 import com.pinyougou.pojo.TbGoods;
+import com.pinyougou.pojo.TbItem;
 import com.pinyougou.service.BaseService;
 import com.pinyougou.vo.Goods;
 import com.pinyougou.vo.PageResult;
+
+import java.util.List;
 
 public interface GoodsService extends BaseService<TbGoods> {
 
@@ -41,4 +44,20 @@ public interface GoodsService extends BaseService<TbGoods> {
      * @return Result 处理结果
      */
     void deleteGoodsByIds(Long[] ids);
+
+    /**
+     * 根据spu id数组和状态查询sku的集合
+     * @param ids spu的id的素数组
+     * @param status spu 的状态
+     * @return List<TbItem>
+     */
+    List<TbItem> findItemListByGoodsIdsAndStatus(Long[] ids, String status);
+
+    /**
+     * 根据spu id和状态查询sku
+     * @param goodsId spu的id
+     * @param status spu 的状态
+     * @return Goods
+     */
+    Goods findItemByGoodsIdAndStatus(Long goodsId, String status);
 }

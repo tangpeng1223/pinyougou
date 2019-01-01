@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://192.168.12.168:61616"/>
+    </bean>
+
+    <bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+         <property name="targetConnectionFactory" ref="targetConnectionFactory"/>
+    </bean>
+
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="connectionFactory"/>
+    </bean>
+
+    <!--商品审核时 发送消息通知solr及时导入数据到solr中-->
+    <bean id="itemImportQueue" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="item_solr_import_queue"/>
+    </bean>
+
+    <!--商品审核时 发送消息通知solr及时导入数据到solr中-->
+    <bean id="itemDeleteQueue" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="item_solr_delete_queue"/>
+    </bean>
+
+    <!--商品审核时 发送消息通知及时生成静态化页面到指定地址中-->
+    <bean id="itemTopic" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg value="pyg_item_topic"/>
+    </bean>
+
+
+    <!--商品删除时 发送消息通知及时删除生成静态化页面-->
+    <bean id="itemDeleteTopic" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg value="pyg_item_delete_topic"/>
+    </bean>
+
+
+
+</beans>

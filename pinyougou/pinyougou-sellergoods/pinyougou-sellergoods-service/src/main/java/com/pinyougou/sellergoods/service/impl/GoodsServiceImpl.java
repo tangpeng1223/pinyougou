@@ -97,21 +97,41 @@ public class GoodsServiceImpl extends BaseServiceImpl<TbGoods> implements GoodsS
      * @return  Goods（TbGoods GoodsDesc item）
      */
     public Goods findGoodsById(Long id) {
-        //实例化封装对象
+
+        Goods goods = findItemByGoodsIdAndStatus(id,null);
+        return goods;
+    }
+
+    /**
+     * 根据spu id和状态查询sku
+     * @param goodsId spu的id
+     * @param itemStatus  sku 的状态
+     * @return Goods
+     */
+    @Override
+    public Goods findItemByGoodsIdAndStatus(Long goodsId, String itemStatus) {
+
         Goods goods=new Goods();
-        TbGoods tbGoods = goodsMapper.selectByPrimaryKey(id);
-        //设置商品信息spu
+        //查询商品的基本信息
+        TbGoods tbGoods = goodsMapper.selectByPrimaryKey(goodsId);
         goods.setGoods(tbGoods);
-        TbGoodsDesc tbGoodsDesc = goodsDescMapper.selectByPrimaryKey(id);
-        //设置基本信息
+        //设置商品描述信息
+        TbGoodsDesc tbGoodsDesc = goodsDescMapper.selectByPrimaryKey(goodsId);
         goods.setGoodsDesc(tbGoodsDesc);
 
+        //设置查询条件
+        //select  *  from tb_item where goodsId=？ and status=？ order  by is_defualt desc;
         Example example=new Example(TbItem.class);
-        example.createCriteria().andEqualTo("goodsId",id);
+        example.createCriteria().andEqualTo("goodsId",goodsId);
+        if(!StringUtils.isEmpty(itemStatus)){
+            example.createCriteria().andEqualTo("status",itemStatus);
+        }
+        example.orderBy("isDefault").desc();
 
-        List<TbItem> tbItems = itemMapper.selectByExample(example);
-        goods.setItemList(tbItems);
-        //返回查询结果
+        List<TbItem> itemList=itemMapper.selectByExample(example);
+
+        goods.setItemList(itemList);
+
         return goods;
     }
 
@@ -262,5 +282,18 @@ public class GoodsServiceImpl extends BaseServiceImpl<TbGoods> implements GoodsS
           example.createCriteria().andIn("id", Arrays.asList(ids));
           //灵活性更新数据
           goodsMapper.updateByExampleSelective(tbGoods,example);
+    }
+
+    /**
+     * 根据spu id数组和状态查询sku的集合
+     * @param ids    spu的id的素数组
+     * @param status spu 的状态
+     * @return List<TbItem>
+     */
+    @Override
+    public List<TbItem> findItemListByGoodsIdsAndStatus(Long[] ids, String status) {
+        Example example=new Example(TbItem.class);
+        example.createCriteria().andEqualTo("status",status).andIn("goodsId", Arrays.asList(ids));
+        return itemMapper.selectByExample(example);
     }
 }

@@ -1,7 +1,6 @@
 import com.alibaba.fastjson.JSON;
 import com.pinyougou.mapper.ItemMapper;
 import com.pinyougou.pojo.TbItem;
-import com.sun.deploy.panel.ITreeNode;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

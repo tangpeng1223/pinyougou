@@ -1,13 +1,25 @@
 package com.pinyougou.manage.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
+import com.alibaba.fastjson.JSON;
+import com.pinyou.search.service.ItemSearchService;
 import com.pinyougou.pojo.TbGoods;
+import com.pinyougou.pojo.TbItem;
 import com.pinyougou.sellergoods.service.GoodsService;
 import com.pinyougou.vo.Goods;
 import com.pinyougou.vo.PageResult;
 import com.pinyougou.vo.Result;
+import org.apache.activemq.command.ActiveMQMapMessage;
+import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.command.ActiveMQTextMessage;
+import org.apache.activemq.command.ActiveMQTopic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 import org.springframework.web.bind.annotation.*;
 
+import javax.jms.*;
+import javax.xml.soap.Text;
 import java.util.List;
 
 @RequestMapping("/goods")
@@ -16,6 +28,25 @@ public class GoodsController {
 
     @Reference
     private GoodsService goodsService;
+
+    @Reference
+    private ItemSearchService itemSearchService;
+
+
+    @Autowired
+    private JmsTemplate jmsTemplate;
+
+    @Autowired
+    private ActiveMQQueue itemImportQueue;
+
+    @Autowired
+    private ActiveMQQueue itemDeleteQueue;
+
+    @Autowired
+    private ActiveMQTopic itemTopic;
+
+    @Autowired
+    private ActiveMQTopic itemDeleteTopic;
 
     @RequestMapping("/findAll")
     public List<TbGoods> findAll() {
@@ -64,11 +95,31 @@ public class GoodsController {
     public Result delete(Long[] ids) {
         try {
             goodsService.deleteGoodsByIds(ids);
+            //itemSearchService.deleteItemListByGoodsIds(ids);
+            //发送消息删除solr中的数据
+            sendMsg(itemDeleteQueue,ids);
+            //发送消息删除静态华页面
+            sendMsg(itemDeleteTopic,ids);
             return Result.Success("删除成功");
         } catch (Exception e) {
             e.printStackTrace();
         }
         return Result.fail("删除失败");
+    }
+
+    /**
+     * 发送队列消息
+     * @param destination  删除消息名
+     * @param ids spu数组
+     */
+    private void sendMsg(Destination destination, Long[] ids) {
+        jmsTemplate.send(destination, new MessageCreator() {
+            @Override
+            public Message createMessage(Session session) throws JMSException {
+                return session.createObjectMessage(ids);
+            }
+        });
+
     }
 
     /**
@@ -88,6 +139,23 @@ public class GoodsController {
     public Result updateStatus(Long ids[],String status){
         try {
             goodsService.updateStatus(ids,status);
+            if("2".equals(status)){
+                //查询修改spu对应的sku
+                List<TbItem> itemList=goodsService.findItemListByGoodsIdsAndStatus(ids,"1");
+                //itemSearchService.importItemList(itemList);
+                jmsTemplate.send(itemImportQueue, new MessageCreator() {
+                    @Override
+                    public Message createMessage(Session session) throws JMSException {
+                        TextMessage textMessage=new ActiveMQTextMessage();
+                        //转化格式
+                        textMessage.setText(JSON.toJSONString(itemList));
+                        return textMessage;
+                    }
+                });
+
+                //发送消息到item_web商品详情系统
+                sendMsg(itemTopic,ids);
+            }
             return  Result.Success("审核成功");
         } catch (Exception e) {
             e.printStackTrace();
