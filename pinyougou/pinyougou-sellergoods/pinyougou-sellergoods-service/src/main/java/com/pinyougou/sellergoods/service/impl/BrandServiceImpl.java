@@ -38,6 +38,7 @@ public class BrandServiceImpl extends BaseServiceImpl<TbBrand> implements BrandS
     public List<TbBrand> queryAll() {
         System.out.println("");
         return brandMapper.queryAll();
+        System.out.println("");
     }
 
     /**
